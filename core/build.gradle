@@ -1,0 +1,25 @@
+// api모듈은
+// bootJar > Spring Boot 애플리케이션으로 실행 가능한 JAR 파일로 패키징 하고,
+// jar > 일반적인 JAR 파일로 패키징하지 않는다.
+
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '3.3.5'
+    id 'io.spring.dependency-management' version '1.1.6'
+}
+
+repositories {
+    mavenCentral()
+}
+
+bootJar {
+    enabled = false
+}
+
+jar {
+    enabled = true
+}
+
+dependencies {
+
+}
