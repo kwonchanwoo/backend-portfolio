@@ -39,7 +39,7 @@ public class File extends BaseEntity {
     // 다운로드 횟수
     @Column(nullable = false)
     @ColumnDefault("0")
-    private int downloadCnt = 0;
+    private int downloadCnt;
 
     @Column(columnDefinition = "varchar(30) not null comment 'mime 타입'")
     private String mime;

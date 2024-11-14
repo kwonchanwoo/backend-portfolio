@@ -35,33 +35,22 @@ public class SecurityConfig {
 
     private final JwtTokenProvider jwtTokenProvider;
 
-    // 역할 계층 등록 ADMIN > USER
+    // 역할 계층 등록 SUPER_ADMIN > ADMIN > USER
     @Bean
-    public RoleHierarchy roleHierarchy() {
-        RoleHierarchyImpl roleHierarchy = new RoleHierarchyImpl();
-
-        Map<String, List<String>> roleHierarchyMap = new HashMap<>();
-        roleHierarchyMap.put("ROLE_ADMIN", List.of("ROLE_USER"));
-
-        String roles = RoleHierarchyUtils.roleHierarchyFromMap(roleHierarchyMap);
-        log.debug(roles);
-        roleHierarchy.setHierarchy(roles);
-
-        // 혹은 아래와 같이 작성할 수 있다.
-        // roleHierarchy.setHierarchy("ROLE_ADMIN > ROLE_MANAGER\nROLE_MANAGER > ROLE_POST\nROLE_MANAGER > ROLE_COMMENT\nROLE_MANAGER > ROLE_FILE\nROLE_USER > ROLE_POST");
-        return roleHierarchy;
+    public RoleHierarchy  roleHierarchy() {
+        return RoleHierarchyImpl.fromHierarchy("ROLE_SUPER_ADMIN > ROLE_ADMIN > ROLE_USER");
     }
 
-    @Bean
-    public WebSecurityCustomizer webSecurityCustomizer() {
-        return (web) -> web.ignoring()
-                .requestMatchers(
-                        "/members/join",
-                        "/members/duplicate_check",
-                        "/authorize/login",
-                        "/authorize/refresh-token"
-                );
-    }
+//    @Bean
+//    public WebSecurityCustomizer webSecurityCustomizer() {
+//        return (web) -> web.ignoring()
+//                .requestMatchers(
+//                        "/admin/members/join",
+//                        "/admin/members/duplicate_check",
+//                        "/admin/authorize/login",
+//                        "/admin/authorize/refresh-token"
+//                );
+//    }
 
     // 시큐리티 커스텀 설정
     @Bean
@@ -73,7 +62,12 @@ public class SecurityConfig {
 //                .cors().configurationSource(corsConfigurationSource())
                 .sessionManagement(configurer -> configurer.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorize ->
-                        authorize.requestMatchers("/admin/**").hasRole("ADMIN"))
+                        authorize.requestMatchers("/members/join",
+                                        "/members/duplicate_check",
+                                        "/authorize/login",
+                                        "/authorize/refresh-token").permitAll()
+                                .anyRequest().hasRole("ADMIN")
+                )
                 .exceptionHandling(authenticationManager -> authenticationManager
                         .authenticationEntryPoint(new CustomAuthenticationEntryPoint())
                         .accessDeniedHandler(new CustomAccessDeniedHandler()))
@@ -91,7 +85,7 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
 
         configuration.addAllowedOriginPattern("*");
-        configuration.addAllowedOrigin("http://localhost:8000");
+        configuration.addAllowedOrigin("http://localhost:8150");
         configuration.addAllowedHeader("*");
         configuration.addAllowedMethod("*");
         configuration.setAllowCredentials(true);

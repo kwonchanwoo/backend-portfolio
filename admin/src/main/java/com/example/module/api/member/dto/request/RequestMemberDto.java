@@ -1,5 +1,6 @@
 package com.example.module.api.member.dto.request;
 
+import com.example.module.dto.Role;
 import com.example.module.entity.Member;
 import com.example.module.util._Enum.Gender;
 import jakarta.validation.Valid;
@@ -34,6 +35,8 @@ public class RequestMemberDto {
     private int age;
     @Pattern(regexp = "^01[0-9]{1}-[0-9]{4}-[0-9]{4}$", message = "전화번호 형식이 안맞습니다. (xxx-xxxx-xxxx)")
     private String phoneNumber;
+
+    private Role role;
 
     public RequestMemberDto(Member member) {
         this.userId = member.getUserId();

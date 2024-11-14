@@ -1,5 +1,6 @@
 package com.example.module.entity;
 
+import com.example.module.dto.Role;
 import com.example.module.util.BaseEntity;
 import com.example.module.util._Enum.Gender;
 import jakarta.persistence.*;
@@ -35,12 +36,12 @@ public class Member extends BaseEntity implements UserDetails {
 
     @ElementCollection(fetch = FetchType.EAGER)
     @Builder.Default
-    private List<String> roles = new ArrayList<>();
+    private List<Role> roles = new ArrayList<>();
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return this.roles.stream()
-                .map(SimpleGrantedAuthority::new)
+                .map((Role role) -> new SimpleGrantedAuthority(role.name()))
                 .collect(Collectors.toList());
     }
 

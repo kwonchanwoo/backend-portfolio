@@ -31,11 +31,9 @@ public class BoardComment extends BaseEntity {
     private BoardComment boardComment;
 
     @OneToMany(mappedBy = "boardComment", orphanRemoval = true,cascade = {CascadeType.PERSIST, CascadeType.REMOVE})
-    private List<BoardComment> boardComments = new ArrayList<>();
+    private List<BoardComment> boardComments;
 
     private int sort;
-
-
 
     @Column(columnDefinition = "varchar(255) DEFAULT NULL")
     private String contents;

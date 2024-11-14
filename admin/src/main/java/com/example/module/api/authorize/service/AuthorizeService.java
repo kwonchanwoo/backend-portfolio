@@ -77,10 +77,11 @@ public class AuthorizeService implements UserDetailsService {
 
     // 해당하는 User 의 데이터가 존재한다면 UserDetails 객체로 만들어서 리턴
     private UserDetails createUserDetails(Member member) {
-        return User.builder()
-                .username(member.getUsername())
-                .password(member.getPassword())
-                .roles(member.getRoles().toArray(new String[0]))
+        User.UserBuilder builder = User.builder();
+        builder.username(member.getUsername());
+        builder.password(member.getPassword());
+        builder.roles((member.getRoles().stream().map(Enum::name).toArray(String[]::new)));
+        return builder
                 .build();
     }
 
@@ -109,12 +110,6 @@ public class AuthorizeService implements UserDetailsService {
 
     @Transactional
     public void logout() {
-
-        // 현재 로그인한 유저인지 체크
-        if(!Objects.nonNull(SecurityContextHelper.getPrincipal())){
-            throw new CommonException(ErrorCode.ACCESS_DENIED);
-        }
-
         List<Token> oldTokenList = tokenRepository.findByTokenKey(SecurityContextHelper.getPrincipal().getUserId());
         if ((long) oldTokenList.size() > 0) {
             oldTokenList.forEach(refreshToken -> refreshToken.setDeleted(true));

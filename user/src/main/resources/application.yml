@@ -1,0 +1,7 @@
+spring:
+  config:
+    import:
+      - classpath:/application-local.yml
+      - classpath:/application-dev.yml
+  profiles:
+    active: local

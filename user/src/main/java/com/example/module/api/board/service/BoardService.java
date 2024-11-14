@@ -3,8 +3,7 @@ package com.example.module.api.board.service;
 import com.example.module.api.board.dto.request.RequestBoardDto;
 import com.example.module.api.board.dto.response.ResponseBoardDto;
 import com.example.module.entity.Board;
-import com.example.module.repository.board.BoardRepository;
-import com.example.module.util.SecurityContextHelper;
+import com.example.module.repository.board.repository.board.BoardRepository;
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -35,7 +34,6 @@ public class BoardService {
     }
     @Transactional
     public void patchBoard(Board board, RequestBoardDto requestBoardDto) {
-        SecurityContextHelper.isAuthorizedForMember(board.getCreatedMember()); // 권한 체크
         board.setTitle(requestBoardDto.getTitle());
         board.setContents(requestBoardDto.getContents());
         boardRepository.save(board);

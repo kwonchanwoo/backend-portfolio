@@ -2,6 +2,7 @@ package com.example.module.api.member.controller;
 
 import com.example.module.api.member.dto.request.RequestDuplicateCheckDto;
 import com.example.module.api.member.dto.request.RequestMemberDto;
+import com.example.module.api.member.dto.request.RequestPatchMemberDto;
 import com.example.module.api.member.dto.response.ResponseMemberDto;
 import com.example.module.api.member.service.MemberService;
 import com.example.module.entity.Member;
@@ -49,5 +50,17 @@ public class MemberController {
     @ResponseStatus(HttpStatus.OK)
     public void duplicateCheck(@Valid @RequestBody RequestDuplicateCheckDto duplicateCheckDto){
         memberService.duplicateCheck(duplicateCheckDto.getId());
+    }
+
+    /**
+     * 회원 권한 수정
+     *
+     * @param member
+     * @param requestPatchMemberDto
+     */
+    @PatchMapping("/{member}")
+    @ResponseStatus(HttpStatus.OK)
+    public void patchMember(@RequestParam(name = "member") Member member, @Valid @RequestBody RequestPatchMemberDto requestPatchMemberDto) {
+        memberService.patchMember(member,requestPatchMemberDto);
     }
 }

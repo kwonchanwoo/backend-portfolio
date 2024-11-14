@@ -29,6 +29,6 @@ public class Board extends BaseEntity {
     private int views; // 조회수
 
     @OneToMany(mappedBy = "board", orphanRemoval = true,cascade={CascadeType.PERSIST,CascadeType.REMOVE})
-    private List<BoardComment> boardComments = new ArrayList<>();
+    private List<BoardComment> boardComments;
 
 }

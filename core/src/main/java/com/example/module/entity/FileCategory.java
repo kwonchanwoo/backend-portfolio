@@ -25,6 +25,6 @@ public class FileCategory extends BaseEntity {
     private String name;
 
     @OneToMany(mappedBy = "fileCategory", cascade = {CascadeType.PERSIST, CascadeType.REMOVE}, orphanRemoval = true)
-    private List<File> files = new ArrayList<>();
+    private List<File> files;
 
 }

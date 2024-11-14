@@ -1,4 +1,4 @@
-package com.example.module.repository.board;
+package com.example.module.repository.board.repository.board;
 
 import com.example.module.api.board.dto.response.ResponseBoardDto;
 import org.springframework.data.domain.Page;

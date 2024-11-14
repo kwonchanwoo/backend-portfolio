@@ -14,7 +14,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class BoardCommentController {
     private final BoardCommentService boardCommentService;
-    //todo commit test
+
     @GetMapping("/{board}")
     public List<BoardCommentDto> getBoardCommentList(@PathVariable(name = "board") Board board) {
         return boardCommentService.getBoardCommentList(board);

@@ -1,0 +1,38 @@
+spring:
+  config:
+    activate:
+      on-profile: dev
+  servlet:
+    multipart:
+      max-file-size: 1GB
+      max-request-size: 100MB
+      location: /Users/giraf/files
+  jpa:
+    database: MYSQL
+    generate-ddl: true
+    show-sql: true
+    hibernate:
+      ddl-auto: none
+    #   콘솔창에 쿼리문 정렬되어 보이게 하는 설정
+    properties:
+      hibernate:
+        order_by:
+          default_null_ordering: last
+        format_sql: true
+        default_batch_fetch_size: 100
+  datasource:
+    url: jdbc:mariadb://3.37.127.89:3306/project
+    driver-class-name: org.mariadb.jdbc.Driver
+    username: user
+    password: 1234
+    hikari:
+      connectionTimeout: 30000
+      maximumPoolSize: 5
+      maxLifetime: 1200000
+      poolName: HikariCP
+jwt:
+  secret: VlwEyVBsYt9V7zq57TejMnVUyzblYcfPQye08f7MGVA9XkHa
+server:
+  servlet:
+    context-path: /api/user
+  port: 8060
