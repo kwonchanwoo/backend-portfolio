@@ -4,7 +4,7 @@ import com.example.module.api.board.dto.request.RequestBoardComment;
 import com.example.module.api.board.dto.response.BoardCommentDto;
 import com.example.module.entity.Board;
 import com.example.module.entity.BoardComment;
-import com.example.module.repository.board.BoardCommentRepository;
+import com.example.module.repository.board.repository.board.BoardCommentRepository;
 import com.example.module.util.CommonException;
 import com.example.module.util._Enum.ErrorCode;
 import lombok.RequiredArgsConstructor;
