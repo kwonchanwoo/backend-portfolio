@@ -12,7 +12,7 @@ spring:
     generate-ddl: true
     show-sql: true
     hibernate:
-      ddl-auto: none
+      ddl-auto: update
     #   콘솔창에 쿼리문 정렬되어 보이게 하는 설정
     properties:
       hibernate:
