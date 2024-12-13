@@ -21,7 +21,7 @@ spring:
         format_sql: true
         default_batch_fetch_size: 100
   datasource:
-    url: jdbc:mariadb://3.37.127.89:3306/project
+    url: jdbc:mariadb://15.164.40.137:3306/project
     driver-class-name: org.mariadb.jdbc.Driver
     username: user
     password: 1234

@@ -4,4 +4,9 @@ spring:
       - classpath:/application-local.yml
       - classpath:/application-dev.yml
   profiles:
-    active: local
+    default: local
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MariaDBDialect
+        jdbc.default_character_set: utf8mb4  # 서버와 동일하게 문자열 통일 #
