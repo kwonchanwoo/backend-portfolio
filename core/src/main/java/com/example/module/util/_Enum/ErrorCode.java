@@ -17,12 +17,8 @@ public enum ErrorCode {
     ACCESS_DENIED(HttpStatus.FORBIDDEN, 403, "잘못된 접근입니다."), // // 권한이 없다고 표현하면 악용 될수있어서 잘못된 접근으로 처리
 
     // member
-    MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, 404, "Member not found"),
-    MEMBER_DUPLICATED(HttpStatus.CONFLICT, 409, "Member is duplicated"),
-
-    // board
-    //    BOARD_COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND, 404, "Board_Comment not found"),
-    //    BOARD_NOT_FOUND(HttpStatus.NOT_FOUND, 404, "Board not found"),
+    MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, 404, "해당 회원을 찾을 수 없습니다."),
+    MEMBER_DUPLICATED(HttpStatus.CONFLICT, 409, "중복된 회원입니다."),
 
     // redis
     REDIS_COMMAND_EXECUTION(HttpStatus.SERVICE_UNAVAILABLE,503,"redis에서 문제가 발생 하였습니다."),
@@ -35,8 +31,8 @@ public enum ErrorCode {
     ENUM_BOARD_CATEGORY_INVALID(HttpStatus.BAD_REQUEST, 400, "게시판 종류를 잘못 입력 하였 습니다."),
 
     // fileCategory
-    FILE_CATEGORY_DUPLICATED(HttpStatus.CONFLICT,409,"FileCategory is duplicated"),
-    FILE_CATEGORY_NOT_EXISTS(HttpStatus.BAD_REQUEST,400,"FileCategory is not exists"),
+    FILE_CATEGORY_DUPLICATED(HttpStatus.CONFLICT,409,"중복된 파일 카테고리입니다."),
+    FILE_CATEGORY_NOT_EXISTS(HttpStatus.BAD_REQUEST,400,"존재하지 않는 파일 카테고리입니다."),
 
     // fileCategoryRole
     FILE_CATEGORY_ROLE_NOT_EXISTS(HttpStatus.FORBIDDEN,403 ,"해당 파일 메뉴에 대한 권한이 없습니다."),
@@ -63,7 +59,8 @@ public enum ErrorCode {
     /**
      *  게시판 관련
      */
-    BOARD_COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND,404,"해당 게시판 댓글을 찾을수없습니다.");
+    BOARD_NOT_FOUND(HttpStatus.NOT_FOUND,404,"해당 게시판을 찾을 수 없습니다."),
+    BOARD_COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND,404,"해당 게시판 댓글을 찾을 수 없습니다.");
 
     private final HttpStatus httpStatus;
     private final Integer code;

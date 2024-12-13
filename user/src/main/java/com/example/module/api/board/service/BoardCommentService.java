@@ -1,10 +1,12 @@
 package com.example.module.api.board.service;
 
-import com.example.module.api.board.dto.request.RequestBoardComment;
+import com.example.module.api.board.dto.request.RequestBoardCommentDto;
+import com.example.module.api.board.dto.request.RequestBoardIdDto;
 import com.example.module.api.board.dto.response.BoardCommentDto;
 import com.example.module.entity.Board;
 import com.example.module.entity.BoardComment;
-import com.example.module.repository.board.repository.board.BoardCommentRepository;
+import com.example.module.repository.board.BoardCommentRepository;
+import com.example.module.repository.board.BoardRepository;
 import com.example.module.util.CommonException;
 import com.example.module.util._Enum.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -13,29 +15,38 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class BoardCommentService {
     private final BoardCommentRepository boardCommentRepository;
+    private final BoardRepository boardRepository;
 
-    public List<BoardCommentDto> getBoardCommentList(Board board) {
+    public List<BoardCommentDto> getBoardCommentList(RequestBoardIdDto requestBoardIdDto) {
+        Board board = boardRepository.findById(requestBoardIdDto.getBoardId()).orElseThrow(() -> new CommonException(ErrorCode.BOARD_NOT_FOUND));
+
         return boardCommentRepository
-                .findByBoardAndBoardCommentNullOrderBySortAsc(board)// 메인 댓글 조회(메인 댓글은 부모값이 없음 parent_id가 null인것만 체크)
-                .stream()
-                .map(BoardCommentDto::new)
-                .collect(Collectors.toList());
+                .getBoardCommentList(board);
     }
 
     @Transactional
-    public void postBoardComment(Board board, RequestBoardComment requestBoardComment) {
-        BoardComment boardComment = null;
-        // 댓글 부모값이 있는지 체크
-        if (requestBoardComment.getParentId() != null) {
-            boardComment = boardCommentRepository
-                    .findById(requestBoardComment.getParentId())
+    public void postBoardComment(RequestBoardCommentDto requestBoardCommentDto) {
+
+        //게시판 체크
+        Board board = boardRepository
+                .findByIdAndDeletedFalse(requestBoardCommentDto.getBoardId())
+                .orElseThrow(() -> new CommonException(ErrorCode.BOARD_NOT_FOUND));
+
+        // 서브 댓글
+        if (requestBoardCommentDto.getBoardCommentId() != null) {
+            BoardComment boardComment = boardCommentRepository
+                    .findById(requestBoardCommentDto.getBoardCommentId())
+                    .orElseThrow(() -> new CommonException(ErrorCode.BOARD_COMMENT_NOT_FOUND));
+
+            // 대상 댓글 체크
+            boardCommentRepository
+                    .findById(requestBoardCommentDto.getTargetCommentId())
                     .orElseThrow(() -> new CommonException(ErrorCode.BOARD_COMMENT_NOT_FOUND));
 
             // 형제중 정렬값이 가장높은 값 조회
@@ -45,13 +56,14 @@ public class BoardCommentService {
             boardCommentRepository.save(BoardComment.builder()
                     .board(board)
                     .boardComment(boardComment)
+                    .targetCommentId(requestBoardCommentDto.getTargetCommentId())
                     .sort(max_sort + 1)
-                    .contents(requestBoardComment.getContents())
+                    .contents(requestBoardCommentDto.getContents())
                     .build());
-        } else {
+        } else {  // 메인 댓글
             boardCommentRepository.save(BoardComment.builder()
                     .board(board)
-                    .contents(requestBoardComment.getContents())
+                    .contents(requestBoardCommentDto.getContents())
                     .build());
         }
     }

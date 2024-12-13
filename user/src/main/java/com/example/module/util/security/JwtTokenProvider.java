@@ -1,7 +1,7 @@
 package com.example.module.util.security;
 
 import com.example.module.api.authorize.dto.response.TokenInfo;
-import com.example.module.repository.board.repository.member.MemberRepository;
+import com.example.module.repository.member.MemberRepository;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;

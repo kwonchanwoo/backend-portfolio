@@ -30,8 +30,11 @@ public class BoardComment extends BaseEntity {
     @JoinColumn(name = "board_comment_id")
     private BoardComment boardComment;
 
-    @OneToMany(mappedBy = "boardComment", orphanRemoval = true,cascade = {CascadeType.PERSIST, CascadeType.REMOVE})
+    @OneToMany(mappedBy = "boardComment", orphanRemoval = true,cascade = {CascadeType.PERSIST, CascadeType.REMOVE},fetch = FetchType.LAZY)
     private List<BoardComment> boardComments;
+
+    @Column
+    private Long targetCommentId; // 대댓글 대상 id
 
     private int sort;
 

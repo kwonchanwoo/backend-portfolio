@@ -23,7 +23,7 @@ public class BoardController {
         return boardService.getBoardList(filters, pageable);
     }
 
-    @PostMapping
+    @PostMapping        
     @ResponseStatus(HttpStatus.CREATED)
     public void postBoard(@RequestBody RequestBoardDto requestBoardDto){
         boardService.postBoard(requestBoardDto);
