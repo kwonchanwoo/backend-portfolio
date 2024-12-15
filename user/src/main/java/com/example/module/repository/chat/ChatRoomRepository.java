@@ -1,4 +1,6 @@
 package com.example.module.repository.chat;
 
-public interface ChatRoomRepository extends ChatRoomCoreRepository {
+import com.example.module.repository.chat.querydsl.ChatRoomCustomRepository;
+
+public interface ChatRoomRepository extends ChatRoomCoreRepository, ChatRoomCustomRepository {
 }

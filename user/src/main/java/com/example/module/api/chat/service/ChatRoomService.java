@@ -3,6 +3,7 @@ package com.example.module.api.chat.service;
 import com.example.module.api.chat.dto.request.RequestChatMessageDto;
 import com.example.module.api.chat.dto.request.RequestPostChatRoomDto;
 import com.example.module.api.chat.dto.response.ResponseChatMessageDto;
+import com.example.module.api.chat.dto.response.ResponseChatRoomDto;
 import com.example.module.api.chat.dto.response.ResponseChatSubScribeDto;
 import com.example.module.entity.ChatMessage;
 import com.example.module.entity.ChatRoom;
@@ -16,9 +17,14 @@ import com.example.module.util.CommonException;
 import com.example.module.util.SecurityContextHelper;
 import com.example.module.util._Enum.ErrorCode;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -30,6 +36,10 @@ public class ChatRoomService {
     private final MemberRepository memberRepository;
     private final SimpMessageSendingOperations simpMessageSendingOperations;
 
+    public Page<ResponseChatRoomDto> getChatRoomList(Map<String, Object> filters, Pageable pageable) {
+        return chatRoomRepository.getChatRoomList(filters,pageable);
+    }
+
     @Transactional
     public void postChatRoom(RequestPostChatRoomDto requestPostChatRoomDto) {
         ChatRoom chatRoom = chatRoomRepository.save(ChatRoom.builder()
@@ -37,12 +47,19 @@ public class ChatRoomService {
                 .chatRoomCategory(requestPostChatRoomDto.getChatRoomCategory())
                 .build());
 
-        chatRoomMemberRepository.save(ChatRoomMember.builder().chatRoom(chatRoom).build());
+        List<Long> invitationIds = requestPostChatRoomDto.getInvitationIds();
+
+        for (Long invitationId : invitationIds) {
+            Member member = memberRepository.findById(invitationId).orElseThrow(() -> new CommonException(ErrorCode.MEMBER_NOT_FOUND));
+            if(!chatRoomMemberRepository.existsByChatRoomAndSubScriber(chatRoom,member)){
+                chatRoomMemberRepository.save(ChatRoomMember.builder().chatRoom(chatRoom).subScriber(member).build());
+            }
+        }
     }
 
     @Transactional
-    public ResponseChatSubScribeDto subscribe(ChatRoom chatRoom) {
-        if (chatRoomMemberRepository.existsByChatRoomAndCreatedMember(chatRoom, SecurityContextHelper.getPrincipal())) {
+    public ResponseChatSubScribeDto subScribe(ChatRoom chatRoom) {
+        if (chatRoomMemberRepository.existsByChatRoomAndSubScriber(chatRoom, SecurityContextHelper.getPrincipal())) {
             return new ResponseChatSubScribeDto(chatRoom.getId(), "ALREADY_SUBSCRIBED");
         }
 
@@ -52,8 +69,6 @@ public class ChatRoomService {
 
     @Transactional
     public ResponseChatMessageDto sendMessage(Long roomId, RequestChatMessageDto requestChatMessageDto) {
-        System.out.println("Message to Room " + roomId + ": " + requestChatMessageDto.getContents());
-
         ChatRoom chatRoom = chatRoomRepository.findById(roomId).orElseThrow(() -> new CommonException(ErrorCode.CHAT_ROOM_NOT_EXISTS));
 
         Member member = memberRepository.findById(requestChatMessageDto.getSenderId())
