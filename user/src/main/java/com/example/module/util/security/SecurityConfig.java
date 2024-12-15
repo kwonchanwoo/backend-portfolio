@@ -59,7 +59,9 @@ public class SecurityConfig {
                         authorize.requestMatchers("/members/join",
                                         "/members/duplicate_check",
                                         "/authorize/login",
-                                        "/authorize/refresh-token").permitAll()
+                                        "/authorize/refresh-token",
+                                          "ws/**"
+                                        ).permitAll()
                                 .anyRequest().hasRole("USER")
                 )
                 .exceptionHandling(authenticationManager -> authenticationManager

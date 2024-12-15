@@ -28,6 +28,7 @@ public enum ErrorCode {
 
     // enum
     ENUM_GENDER_INVALID(HttpStatus.BAD_REQUEST, 400, "성별을 잘못 입력 하였 습니다."),
+    ENUM_ROOM_CATEGORY_INVALID(HttpStatus.BAD_REQUEST, 400, "채팅방 종류를 잘못 입력 하였 습니다."),
     ENUM_BOARD_CATEGORY_INVALID(HttpStatus.BAD_REQUEST, 400, "게시판 종류를 잘못 입력 하였 습니다."),
 
     // fileCategory
@@ -60,7 +61,12 @@ public enum ErrorCode {
      *  게시판 관련
      */
     BOARD_NOT_FOUND(HttpStatus.NOT_FOUND,404,"해당 게시판을 찾을 수 없습니다."),
-    BOARD_COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND,404,"해당 게시판 댓글을 찾을 수 없습니다.");
+    BOARD_COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND,404,"해당 게시판 댓글을 찾을 수 없습니다."),
+
+    /**
+     *  chat 관련
+     */
+    CHAT_ROOM_NOT_EXISTS(HttpStatus.NOT_FOUND,404,"해당 채팅방을 찾을 수 없습니다.");
 
     private final HttpStatus httpStatus;
     private final Integer code;
