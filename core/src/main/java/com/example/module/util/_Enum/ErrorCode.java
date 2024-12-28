@@ -28,8 +28,8 @@ public enum ErrorCode {
 
     // enum
     ENUM_GENDER_INVALID(HttpStatus.BAD_REQUEST, 400, "성별을 잘못 입력 하였 습니다."),
-    ENUM_ROOM_CATEGORY_INVALID(HttpStatus.BAD_REQUEST, 400, "채팅방 종류를 잘못 입력 하였 습니다."),
-    ENUM_BOARD_CATEGORY_INVALID(HttpStatus.BAD_REQUEST, 400, "게시판 종류를 잘못 입력 하였 습니다."),
+    ENUM_ROOM_CATEGORY_INVALID(HttpStatus.BAD_REQUEST, 400, "채팅방 종류를 잘못 입력 하였습니다.(PRIVARE, OPEN)"),
+    ENUM_BOARD_CATEGORY_INVALID(HttpStatus.BAD_REQUEST, 400, "게시판 종류를 잘못 입력 하였습니다."),
 
     // fileCategory
     FILE_CATEGORY_DUPLICATED(HttpStatus.CONFLICT,409,"중복된 파일 카테고리입니다."),

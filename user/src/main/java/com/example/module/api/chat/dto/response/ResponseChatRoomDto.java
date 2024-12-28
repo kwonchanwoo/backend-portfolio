@@ -16,6 +16,6 @@ public class ResponseChatRoomDto {
     private Long id;
     private String title;
     private ChatRoomCategory chatRoomCategory;
-    private LocalDateTime recentMessageSendDate;
+    private String recentMessageSendDate;
     //Todo 읽지않은 메시지 갯수 추가 예정
 }

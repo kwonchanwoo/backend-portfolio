@@ -37,7 +37,7 @@ public class ChatRoomService {
     private final SimpMessageSendingOperations simpMessageSendingOperations;
 
     public Page<ResponseChatRoomDto> getChatRoomList(Map<String, Object> filters, Pageable pageable) {
-        return chatRoomRepository.getChatRoomList(filters,pageable);
+        return chatRoomRepository.getChatRoomList(filters, pageable);
     }
 
     @Transactional
@@ -51,7 +51,7 @@ public class ChatRoomService {
 
         for (Long invitationId : invitationIds) {
             Member member = memberRepository.findById(invitationId).orElseThrow(() -> new CommonException(ErrorCode.MEMBER_NOT_FOUND));
-            if(!chatRoomMemberRepository.existsByChatRoomAndSubScriber(chatRoom,member)){
+            if (!chatRoomMemberRepository.existsByChatRoomAndSubScriber(chatRoom, member)) {
                 chatRoomMemberRepository.save(ChatRoomMember.builder().chatRoom(chatRoom).subScriber(member).build());
             }
         }
@@ -71,16 +71,27 @@ public class ChatRoomService {
     public ResponseChatMessageDto sendMessage(Long roomId, RequestChatMessageDto requestChatMessageDto) {
         ChatRoom chatRoom = chatRoomRepository.findById(roomId).orElseThrow(() -> new CommonException(ErrorCode.CHAT_ROOM_NOT_EXISTS));
 
-        Member member = memberRepository.findById(requestChatMessageDto.getSenderId())
-                .orElseThrow(() -> new CommonException(ErrorCode.MEMBER_NOT_FOUND));
-
-        chatMessageRepository.save(
-                ChatMessage.builder()
-                        .chatRoom(chatRoom)
-                        .contents(requestChatMessageDto.getContents())
-                        .createdMember(member)
-                        .build());
-
+        if (null == requestChatMessageDto.getSenderId()) {
+            chatMessageRepository.save(
+                    ChatMessage.builder()
+                            .chatRoom(chatRoom)
+                            .contents(requestChatMessageDto.getContents())
+                            .build());
+        } else {
+            memberRepository.findById(requestChatMessageDto.getSenderId()).ifPresentOrElse(member ->
+                            chatMessageRepository.save(
+                                    ChatMessage.builder()
+                                            .chatRoom(chatRoom)
+                                            .contents(requestChatMessageDto.getContents())
+                                            .recipient(member)
+                                            .build()),
+                    () -> chatMessageRepository.save(
+                            ChatMessage.builder()
+                                    .chatRoom(chatRoom)
+                                    .contents(requestChatMessageDto.getContents())
+                                    .build())
+            );
+        }
         return new ResponseChatMessageDto(requestChatMessageDto.getContents());
 //        simpMessageSendingOperations.convertAndSend("/sub/chatrooms/" + roomId,requestChatMessageDto.getContents());
     }

@@ -48,7 +48,8 @@ public class ChatRoomCustomRepositoryImpl implements ChatRoomCustomRepository {
                                 .then(groupConcatNames) // PRIVATE이면 참여자 이름들
                                 .otherwise(chatRoom.title), // OPEN이면 채팅방의 원래 제목,
                         chatRoom.chatRoomCategory,
-                        chatMessage.createdAt.max()
+                        Expressions.stringTemplate("ifnull(DATE_FORMAT({0}, '%Y-%m-%d %H:%i:%s'), DATE_FORMAT({1}, '%Y-%m-%d %H:%i:%s'))",
+                                chatMessage.createdAt.max(), chatRoom.createdAt)// 메시지가 없을시 채팅방 생성날짜를 기준으로 표시
                 ))
                 .from(chatRoom)
                 .where(whereClause(filters))
