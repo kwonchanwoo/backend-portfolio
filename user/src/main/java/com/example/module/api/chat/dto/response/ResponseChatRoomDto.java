@@ -6,8 +6,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.time.LocalDateTime;
-
 @Getter
 @Setter
 @NoArgsConstructor
@@ -17,5 +15,7 @@ public class ResponseChatRoomDto {
     private String title;
     private ChatRoomCategory chatRoomCategory;
     private String recentMessageSendDate;
+    private Long unreadMessageCount;
+    private Long memberCount;
     //Todo 읽지않은 메시지 갯수 추가 예정
 }
