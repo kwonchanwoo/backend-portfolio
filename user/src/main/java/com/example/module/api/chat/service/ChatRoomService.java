@@ -9,6 +9,7 @@ import com.example.module.entity.ChatMessage;
 import com.example.module.entity.ChatRoom;
 import com.example.module.entity.ChatRoomMember;
 import com.example.module.entity.Member;
+import com.example.module.repository.chat.ChatMessageReadRepository;
 import com.example.module.repository.chat.ChatMessageRepository;
 import com.example.module.repository.chat.ChatRoomMemberRepository;
 import com.example.module.repository.chat.ChatRoomRepository;
@@ -35,6 +36,7 @@ public class ChatRoomService {
     private final ChatRoomMemberRepository chatRoomMemberRepository;
     private final MemberRepository memberRepository;
     private final SimpMessageSendingOperations simpMessageSendingOperations;
+    private final ChatMessageReadRepository chatMessageReadRepository;
 
     public Page<ResponseChatRoomDto> getChatRoomList(Map<String, Object> filters, Pageable pageable) {
         return chatRoomRepository.getChatRoomList(filters, pageable);
@@ -49,10 +51,20 @@ public class ChatRoomService {
 
         List<Long> invitationIds = requestPostChatRoomDto.getInvitationIds();
 
+        chatRoomMemberRepository.save(ChatRoomMember
+                        .builder()
+                        .chatRoom(chatRoom)
+                        .subScriber(SecurityContextHelper.getPrincipal())
+                        .build());
+
         for (Long invitationId : invitationIds) {
             Member member = memberRepository.findById(invitationId).orElseThrow(() -> new CommonException(ErrorCode.MEMBER_NOT_FOUND));
             if (!chatRoomMemberRepository.existsByChatRoomAndSubScriber(chatRoom, member)) {
-                chatRoomMemberRepository.save(ChatRoomMember.builder().chatRoom(chatRoom).subScriber(member).build());
+                chatRoomMemberRepository.save(ChatRoomMember
+                        .builder()
+                        .chatRoom(chatRoom)
+                        .subScriber(member)
+                        .build());
             }
         }
     }
@@ -94,5 +106,27 @@ public class ChatRoomService {
         }
         return new ResponseChatMessageDto(requestChatMessageDto.getContents());
 //        simpMessageSendingOperations.convertAndSend("/sub/chatrooms/" + roomId,requestChatMessageDto.getContents());
+    }
+
+    @Transactional
+    public void deleteChatRoom(ChatRoom chatRoom) {
+
+        SecurityContextHelper.isAuthorizedForMember(chatRoom.getCreatedMember());
+
+        chatRoomMemberRepository.markRoomMembersAsDeleted(chatRoom);
+        chatMessageRepository.markMessagesAsDeleted(chatRoom);
+        chatMessageReadRepository.markMessageReadsAsDeleted(chatRoom);
+
+        chatRoom.setDeleted(true);
+        chatRoomRepository.save(chatRoom);
+    }
+
+    @Transactional
+    public void unsubscribe(ChatRoom chatRoom) {
+        ChatRoomMember chatRoomMember = chatRoomMemberRepository
+                .findByChatRoomAndCreatedMember(chatRoom, chatRoom.getCreatedMember())
+                .orElseThrow(() -> new CommonException(ErrorCode.CHAT_ROOM_MEMBER_NOT_EXISTS));
+        chatRoomMember.setDeleted(true);
+        chatRoomMemberRepository.save(chatRoomMember);
     }
 }

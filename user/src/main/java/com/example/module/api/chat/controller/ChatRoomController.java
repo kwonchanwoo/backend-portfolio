@@ -25,16 +25,17 @@ public class ChatRoomController {
     private final ChatRoomService chatRoomService;
 
     @GetMapping
-    public Page<ResponseChatRoomDto> getChatRoomList(@RequestParam(required = false) Map<String,Object> filters, Pageable pageable){
-        return chatRoomService.getChatRoomList(filters,pageable);
+    public Page<ResponseChatRoomDto> getChatRoomList(@RequestParam(required = false) Map<String, Object> filters, Pageable pageable) {
+        return chatRoomService.getChatRoomList(filters, pageable);
     }
 
     /**
      * 채팅방 생성
+     *
      * @param requestPostChatRoomDto
      */
     @PostMapping
-    public void postChatRoom(@RequestBody RequestPostChatRoomDto requestPostChatRoomDto){
+    public void postChatRoom(@RequestBody RequestPostChatRoomDto requestPostChatRoomDto) {
         chatRoomService.postChatRoom(requestPostChatRoomDto);
     }
 
@@ -44,6 +45,7 @@ public class ChatRoomController {
 
     /**
      * 채팅방 구독
+     *
      * @param chatRoom
      * @return ResponseChatSubScribeDto
      */
@@ -54,6 +56,7 @@ public class ChatRoomController {
 
     /**
      * 메시지 발송
+     *
      * @param roomId
      * @param requestChatMessageDto
      * @return ResponseChatMessageDto
@@ -62,5 +65,23 @@ public class ChatRoomController {
     @SendTo("/topic/{roomId}")
     public ResponseChatMessageDto sendMessage(@DestinationVariable Long roomId, RequestChatMessageDto requestChatMessageDto) {
         return chatRoomService.sendMessage(roomId, requestChatMessageDto); // 구독자들에게 브로드캐스트
+    }
+
+    /**
+     * 채팅방 해체 (관리자 또는 카톡방 방장만 가능)
+     * @param chatRoom
+     */
+    @DeleteMapping("/{roomId}")
+    public void deleteChatRoom(@PathVariable(value = "roomId") ChatRoom chatRoom) {
+        chatRoomService.deleteChatRoom(chatRoom);
+    }
+
+    /**
+     * 채팅방 구독해제(일반 유저)
+     * @param chatRoom
+     */
+    @DeleteMapping("{roomId}/unsubscribe")
+    public void unsubscribe(@PathVariable(value = "roomId") ChatRoom chatRoom) {
+        chatRoomService.unsubscribe(chatRoom);
     }
 }
