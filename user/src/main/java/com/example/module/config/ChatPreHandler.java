@@ -40,27 +40,25 @@ public class ChatPreHandler implements ChannelInterceptor {
 
             StompCommand command = headerAccessor.getCommand();
 
-            if(StompCommand.CONNECT.equals(command)){
+            if (StompCommand.CONNECT.equals(command)) {
+                //token 분리
+                String token = "";
+                String authorizationHeaderStr = authorizationHeader.replace("[", "").replace("]", "");
+                if (authorizationHeaderStr.startsWith("Bearer ")) {
+                    token = authorizationHeaderStr.replace("Bearer ", "");
+                } else {
+                    throw new MalformedJwtException("jwt");
+                }
+
+                validateToken(token);
                 return message;
-            }
-            else if(StompCommand.ERROR.equals(command)) {
+            } else if (StompCommand.ERROR.equals(command)) {
                 throw new MessageDeliveryException("error");
             }
 
             if (authorizationHeader == null) {
                 throw new MalformedJwtException("jwt");
             }
-
-            //token 분리
-            String token = "";
-            String authorizationHeaderStr = authorizationHeader.replace("[", "").replace("]", "");
-            if (authorizationHeaderStr.startsWith("Bearer ")) {
-                token = authorizationHeaderStr.replace("Bearer ", "");
-            } else {
-                throw new MalformedJwtException("jwt");
-            }
-
-            validateToken(token);
         } catch (MessageDeliveryException e) {
             log.error("메시지 에러");
             throw new MessageDeliveryException("error");

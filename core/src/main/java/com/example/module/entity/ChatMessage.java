@@ -24,7 +24,8 @@ public class ChatMessage extends BaseEntity {
     @JoinColumn(name = "chat_room_id")
     private ChatRoom chatRoom;
 
-    @OneToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "recipient_id")
     private Member recipient;
 
     @OneToMany(mappedBy = "chatMessage", orphanRemoval = true, cascade = {CascadeType.PERSIST, CascadeType.REMOVE})
