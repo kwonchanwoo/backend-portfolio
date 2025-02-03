@@ -52,10 +52,10 @@ public class ChatRoomService {
         List<Long> invitationIds = requestPostChatRoomDto.getInvitationIds();
 
         chatRoomMemberRepository.save(ChatRoomMember
-                        .builder()
-                        .chatRoom(chatRoom)
-                        .subScriber(SecurityContextHelper.getPrincipal())
-                        .build());
+                .builder()
+                .chatRoom(chatRoom)
+                .subScriber(SecurityContextHelper.getPrincipal())
+                .build());
 
         for (Long invitationId : invitationIds) {
             Member member = memberRepository.findById(invitationId).orElseThrow(() -> new CommonException(ErrorCode.MEMBER_NOT_FOUND));
@@ -75,7 +75,11 @@ public class ChatRoomService {
             return new ResponseChatSubScribeDto(chatRoom.getId(), "ALREADY_SUBSCRIBED");
         }
 
-        chatRoomMemberRepository.save(ChatRoomMember.builder().chatRoom(chatRoom).build());
+        chatRoomMemberRepository.save(
+                ChatRoomMember.builder()
+                .chatRoom(chatRoom)
+                .subScriber(SecurityContextHelper.getPrincipal())
+                .build());
         return new ResponseChatSubScribeDto(chatRoom.getId(), "SUBSCRIBED");
     }
 
