@@ -8,5 +8,6 @@ spring:
   jpa:
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.MariaDBDialect
-        jdbc.default_character_set: utf8mb4  # 서버와 동일하게 문자열 통일 #
+#        dialect: org.hibernate.dialect.MariaDBDialetCustom
+#         function_contributors: com.example.module.config.CustomMariaDbFunctionContributor
+         jdbc.default_character_set: utf8mb4  # 서버와 동일하게 문자열 통일 #

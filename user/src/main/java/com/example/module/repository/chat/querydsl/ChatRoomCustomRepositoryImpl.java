@@ -1,6 +1,7 @@
 package com.example.module.repository.chat.querydsl;
 
 import com.example.module.api.chat.dto.response.ResponseChatRoomDto;
+import com.example.module.entity.QChatMessage;
 import com.example.module.entity.QChatRoomMember;
 import com.example.module.util.SecurityContextHelper;
 import com.querydsl.core.BooleanBuilder;
@@ -36,19 +37,27 @@ public class ChatRoomCustomRepositoryImpl implements ChatRoomCustomRepository {
 
         // 1. 서브쿼리: PRIVATE 채팅방 제목이 Null인경우 참여자 이름을 가져오는 서브쿼리
         SubQueryExpression<String> groupConcatNames = JPAExpressions
-                .select(Expressions.stringTemplate("group_concat({0})", member.name))
+                .select(Expressions.stringTemplate("group_concat_custom({0}, {1})", member.name,Expressions.constant(", ")))
                 .from(chatRoomMember)
                 .leftJoin(member).on(chatRoomMember.subScriber.eq(member))
                 .where(chatRoomMember.chatRoom.eq(chatRoom)
                         .and(chatRoomMember.subScriber.ne(SecurityContextHelper.getPrincipal()))); // 본인 계정을 제외한 나머지
 
+        // 2. 서브쿼리: 채팅방 회원 목록 수
         QChatRoomMember qChatRoomMember = new QChatRoomMember("sub_chat_room_member");
 
-        // 2. 서브쿼리: 채팅방 회원 목록 수
         SubQueryExpression<Long> memberCount = JPAExpressions
                 .select(qChatRoomMember.count())
                 .from(qChatRoomMember)
                 .where(qChatRoomMember.chatRoom.eq(chatRoom));
+
+        // 3. 서브쿼리: 최근 메시지 (1개)
+        QChatMessage qChatMessage = new QChatMessage("sub_chat_message");
+        SubQueryExpression<String> recentMessage = JPAExpressions
+                .select(qChatMessage.contents)
+                .from(qChatMessage)
+                .where(qChatMessage.chatRoom.eq(chatRoom).and(qChatMessage.id.eq(chatMessage.id.max())))
+                .orderBy(new OrderSpecifier<>(Order.DESC, qChatMessage.createdAt));
 
         DateTimeExpression<LocalDateTime> ifnullDateTimeExpression = Expressions.dateTimeTemplate(
                 java.time.LocalDateTime.class,
@@ -64,11 +73,12 @@ public class ChatRoomCustomRepositoryImpl implements ChatRoomCustomRepository {
                                 .when(chatRoom.title.isNull())
                                 .then(groupConcatNames) // PRIVATE이면 참여자 이름들
                                 .otherwise(chatRoom.title), // OPEN이면 채팅방의 원래 제목,
-                        chatRoom.chatRoomCategory,
+                        chatRoom.chatRoomCategory, // 채팅방 종류 (개인, 오픈)
                         Expressions.stringTemplate("ifnull(DATE_FORMAT({0}, '%Y-%m-%d %H:%i:%s'), DATE_FORMAT({1}, '%Y-%m-%d %H:%i:%s'))",
                                 chatMessage.createdAt.max(), chatRoom.createdAt), // 메시지가 없을시 채팅방 생성날짜를 기준으로 표시
                         chatMessage.count().subtract(chatMessageRead.count()),
-                        memberCount
+                        memberCount, // 채팅방 회원 수
+                        recentMessage // 최근 메시지
                 ))
                 .from(chatRoom)
                 .where(whereClause(filters))

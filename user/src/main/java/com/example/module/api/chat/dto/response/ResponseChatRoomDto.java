@@ -11,11 +11,11 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ResponseChatRoomDto {
-    private Long id;
-    private String title;
+    private Long id; // pk
+    private String title; //
     private ChatRoomCategory chatRoomCategory;
     private String recentMessageSendDate;
     private Long unreadMessageCount;
     private Long memberCount;
-    //Todo 읽지않은 메시지 갯수 추가 예정
+    private String recentMessage;
 }
