@@ -27,29 +27,38 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
-        String str = "exception";
-        try {
-            // 1. Request Header 에서 JWT 토큰 추출
-            String token = resolveToken((HttpServletRequest) request);
 
-            // 2. validateToken 으로 토큰 유효성 검사
-            if (token != null && jwtTokenProvider.validateToken(token)) {
-                Authentication authentication = jwtTokenProvider.getAuthentication(token);
-                SecurityContextHolder.getContext().setAuthentication(authentication);
-                request.setAttribute("X-Authorized-id", authentication.getName());
+        HttpServletRequest httpRequest = (HttpServletRequest) request;
+        String servletPath = httpRequest.getServletPath();
+
+        // WebSocket 요청은 필터를 통과하도록 설정
+        if (servletPath.startsWith("/ws")) {
+            chain.doFilter(request, response);
+        } else {
+            String str = "exception";
+            try {
+                // 1. Request Header 에서 JWT 토큰 추출
+                String token = resolveToken((HttpServletRequest) request);
+
+                // 2. validateToken 으로 토큰 유효성 검사
+                if (token != null && jwtTokenProvider.validateToken(token)) {
+                    Authentication authentication = jwtTokenProvider.getAuthentication(token);
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
+                    request.setAttribute("X-Authorized-id", authentication.getName());
+                }
+            } catch (SecurityException | MalformedJwtException | IllegalArgumentException e) {
+                request.setAttribute(str, ErrorCode.TOKEN_INVALID);
+            } catch (ExpiredJwtException e) {
+                request.setAttribute(str, ErrorCode.TOKEN_EXPIRED);
+            } catch (UnsupportedJwtException e) {
+                request.setAttribute(str, ErrorCode.TOKEN_UNSUPPORTED);
+            } catch (RedisCommandExecutionException e) {
+                request.setAttribute(str, ErrorCode.REDIS_COMMAND_EXECUTION);
+            } catch (CommonException e) {
+                request.setAttribute(str, e.getEnumErrorCode());
             }
-        } catch (SecurityException | MalformedJwtException | IllegalArgumentException e) {
-            request.setAttribute(str, ErrorCode.TOKEN_INVALID);
-        } catch (ExpiredJwtException e) {
-            request.setAttribute(str, ErrorCode.TOKEN_EXPIRED);
-        } catch (UnsupportedJwtException e) {
-            request.setAttribute(str, ErrorCode.TOKEN_UNSUPPORTED);
-        } catch (RedisCommandExecutionException e) {
-            request.setAttribute(str, ErrorCode.REDIS_COMMAND_EXECUTION);
-        } catch (CommonException e) {
-            request.setAttribute(str, e.getEnumErrorCode());
+            chain.doFilter(request, response);
         }
-        chain.doFilter(request, response);
     }
 
     // Request Header 에서 토큰 정보 추출

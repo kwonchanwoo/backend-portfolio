@@ -1,9 +1,11 @@
 package com.example.module.config;
 
-import io.jsonwebtoken.ExpiredJwtException;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.MalformedJwtException;
-import io.jsonwebtoken.UnsupportedJwtException;
+import com.example.module.dto.Role;
+import com.example.module.entity.Member;
+import com.example.module.repository.member.MemberRepository;
+import com.example.module.util.CommonException;
+import com.example.module.util._Enum.ErrorCode;
+import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.security.SecurityException;
@@ -17,16 +19,24 @@ import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.MessageHeaderAccessor;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
 import java.security.Key;
+import java.util.List;
 
 @Slf4j
 @Configuration
 public class ChatPreHandler implements ChannelInterceptor {
 
     private final Key key;
+    private final MemberRepository memberRepository;
 
-    public ChatPreHandler(@Value("${jwt.secret}") String secretKey) {
+    public ChatPreHandler(@Value("${jwt.secret}") String secretKey, MemberRepository memberRepository) {
+        this.memberRepository = memberRepository;
         byte[] keyBytes = Decoders.BASE64.decode(secretKey);
         this.key = Keys.hmacShaKeyFor(keyBytes);
     }
@@ -34,11 +44,12 @@ public class ChatPreHandler implements ChannelInterceptor {
     @Override
     public Message<?> preSend(Message<?> message, MessageChannel channel) {
         try {
-            StompHeaderAccessor headerAccessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
+            StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
+            String authorizationHeader = String.valueOf(accessor.getNativeHeader("Authorization"));
 
-            String authorizationHeader = String.valueOf(headerAccessor.getNativeHeader("Authorization"));
+            System.out.println("authorizationHeader : " + authorizationHeader);
 
-            StompCommand command = headerAccessor.getCommand();
+            StompCommand command = accessor.getCommand();
 
             if (StompCommand.CONNECT.equals(command)) {
                 //token 분리
@@ -51,19 +62,29 @@ public class ChatPreHandler implements ChannelInterceptor {
                 }
 
                 validateToken(token);
+
+                String userId = getId(token);
+                List<Role> userRole = getRoles(token).stream().map(Role::valueOf).toList();
+                Authentication authentication = createAuthentication(userId, userRole);
+                accessor.setUser(authentication);
+
                 return message;
             } else if (StompCommand.ERROR.equals(command)) {
                 throw new MessageDeliveryException("error");
+            } else {
+                // SecurityContextHolder에 인증 정보 저장
+                SecurityContextHolder.getContext().setAuthentication((Authentication) accessor.getUser());
+                return message;
             }
 
-            if (authorizationHeader == null) {
-                throw new MalformedJwtException("jwt");
-            }
         } catch (MessageDeliveryException e) {
             log.error("메시지 에러");
             throw new MessageDeliveryException("error");
+        } catch (ExpiredJwtException e) {
+            throw new CommonException(ErrorCode.TOKEN_EXPIRED);
+        } catch (UnsupportedJwtException e) {
+            throw new CommonException(ErrorCode.TOKEN_UNSUPPORTED);
         }
-        return message;
     }
 
     @Override
@@ -106,5 +127,45 @@ public class ChatPreHandler implements ChannelInterceptor {
             log.info("Unsupported JWT Token", e);
             throw e;
         }
+    }
+
+    public String getId(String token) {
+        return Jwts.parserBuilder()
+                .setSigningKey(key)
+                .build()
+                .parseClaimsJws(token)
+                .getBody()
+                .getSubject(); // JWT `sub` 필드에서 사용자 ID 추출
+    }
+
+    public List<String> getRoles(String token) {
+        Claims claims = Jwts.parserBuilder()
+                .setSigningKey(key)
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
+
+        Object authClaim = claims.get("auth");
+
+        if (authClaim instanceof String) {
+            // 문자열일 경우 단일 권한을 리스트로 반환
+            return List.of(((String) authClaim).replace("ROLE_", ""));
+        } else if (authClaim instanceof List) {
+            // 리스트일 경우 직접 반환
+            return (List<String>) authClaim;
+        } else {
+            throw new IllegalArgumentException("Invalid auth claim type");
+        }
+    }
+
+    private Authentication createAuthentication(String userId, List<Role> roles) {
+        List<SimpleGrantedAuthority> authorities = roles.stream()
+                .map(role -> new SimpleGrantedAuthority(role.name())) // ROLE_ 형태 유지
+                .toList();
+        // Member 엔티티를 직접 principal로 설정
+        Member member = memberRepository.findByUserId(userId)
+                .orElseThrow(() -> new UsernameNotFoundException("해당하는 유저를 찾을 수 없습니다."));
+
+        return new UsernamePasswordAuthenticationToken(member, null, authorities);
     }
 }
